@@ -61,6 +61,7 @@ define([
   return function FAMCollection(options) {
 
     options = options || {};
+    var models = options.models;
     this.save = save;
     this.destroy = destroy;
     this.fetch = fetch;
@@ -71,6 +72,9 @@ define([
      * @param  {Function(error, data)} [callback] nodejs-style callback. Called when all models have been fetched from the server.
      */
     function fetch(callback) {
+      for(var i = 0; i < models.length; i++) {
+        models[i].fetch();
+      }
     }
 
     /**
@@ -79,6 +83,9 @@ define([
      * @param  {Function(error, data)} [callback] nodejs-style callback. Called when all models have been saved to the server.
      */
     function save(callback) {
+      for(var i = 0; i < models.length; i++) {
+        models[i].save();
+      }
     }
 
     /**
@@ -87,6 +94,9 @@ define([
      * @param  {Function(error, data)} [callback] nodejs-style callback. Called when all models have been destroyed from the server
      */
     function destroy(callback) {
+      for(var i = 0; i < models.length; i++) {
+        models[i].destroy();
+      }
     }
 
   };

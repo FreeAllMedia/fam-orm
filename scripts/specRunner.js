@@ -11,7 +11,7 @@ require(['require', 'node_modules/mocha/mocha', 'node_modules/sinon/pkg/sinon', 
   expect = chai.expect;
 
   // Require base tests before starting
-  require(['test/fam.model'], function(fam_model){
+  require(['test/fam.model', 'test/fam.collection'], function(fam_model){
     if (window.mochaPhantomJS) { mochaPhantomJS.run(); }
     else { mocha.run(); }
   });
