@@ -5,8 +5,14 @@ Object Relational Mapping library compatible with FAM-RDT(Reliable Data Transpor
 
 To run the tests:
 
-First install mocha-phantomjs:
+1) Install project dependencies:
 
-npm install -g mocha-phantomjs phantomjs
+  npm install
 
-mocha-phantomjs specRunner.html
+2) Install mocha-phantomjs: 
+
+  npm install -g mocha-phantomjs phantomjs
+
+3) Then run the tests:
+
+  mocha-phantomjs specRunner.html
