@@ -7,6 +7,15 @@ define(['../scripts/fam.model.js'], function(FamModel){
       fam_model = new FamModel();
     });
 
+    describe('set/get', function(){
+      it('should set the attribute', function(){
+        expect(fam_model.get('firstName')).to.be.undefined;
+        fam_model.set('firstName', 'test');
+        expect(fam_model.get('firstName')).to.eql('test');
+      });
+
+    });
+
     describe('destroy', function(){
 
       describe('with rdt defined', function(){
@@ -69,10 +78,10 @@ define(['../scripts/fam.model.js'], function(FamModel){
     describe('fetch', function(){
       describe('with rdt defined', function(){
         var mock;
-        var rdt = { get: function(url, callback){ callback(); } };
+        var rdt = { get: function(url, callback){ callback('{"user":{"firstName":"test","lastName":"spec"}}'); } };
 
         beforeEach(function() {
-          fam_model = new FamModel("user", {resource: 'users/2', rdt: rdt});
+          fam_model = new FamModel("user", {jsonRoot:'user', resource: 'users/2', rdt: rdt});
         });
 
         it('should send a get request', function(){
@@ -86,6 +95,12 @@ define(['../scripts/fam.model.js'], function(FamModel){
           callback = sinon.spy();
           fam_model.fetch(callback);
           expect(callback.called).to.eql(true);
+        });
+
+        it('should set the attributes', function(){
+          fam_model.fetch(function(){});
+          expect(fam_model.get('firstName')).to.eql('test');
+          expect(fam_model.get('lastName')).to.eql('spec');
         });
       });
 

@@ -19,12 +19,12 @@ define([
    *     var modelOptions = {},
    *         user = new FAMModel(modelOptions);
    *
-   *     user.firstName; // null
-   *     user.firstName = 'Bob';
-   *     user.firstName; // 'Bob'
+   *     user.get("firstName"); // null
+   *     user.set("firstName", 'Bob');
+   *     user..get("firstName"); // 'Bob'
    *
-   *     user.postalCode = '90210';
-   *     user.postalCode; // '90210'
+   *     user.set("postalCode") = '90210';
+   *     user.get("postalCode"); // '90210'
    *
    *     user.fetch(); // raises Error('Model cannot fetch without an RDT, and a Resource Path. See documentation for details.');
    *
@@ -36,7 +36,8 @@ define([
    * 
    *     var modelOptions = {
    *           rdt: serverRDT // Can use hostURL or not. This example has "https://somehost.com" set as the hostURL.
-   *           resource: 'users/2'
+   *           resource: 'users/2',
+   *           jsonRoot: 'user'
    *         },
    *         user = new FAMModel(modelOptions);
    *
@@ -46,9 +47,9 @@ define([
    *     function dataReady(error, data) {
    *       if(error){ throw error; return; }
    *
-   *       user.firstName; // returns "John", as the data has now been fetched and is available.
+   *       user.get("firstName"); // returns "John", as the data has now been fetched and is available.
    *
-   *       user.firstName = 'Bob';
+   *       user.set("firstName") = 'Bob';
    *
    *       user.save(afterSave);
    *       function afterSave (error, data) {
@@ -68,16 +69,27 @@ define([
     options = options || {};
     var rdt = options.rdt;
     var resource = options.resource;
+    var attributes = {};
+    var jsonRoot = options.jsonRoot;
 
     this.save = save;
     this.destroy = destroy;
     this.fetch = fetch;
+    this.set = set;
+    this.get = get;
 
     /**
      * Fetch model data from data source
      * @method fetch
      * @param {Function(error, data)} [callback] nodejs-style callback. Called when data has completed fetching from the data source.
      */
+    function set(attr, value){
+      attributes[attr] = value;
+    }
+
+    function get(attr){
+      return attributes[attr];
+    }
     
     function checkRequirements(){
       if(rdt == null || resource == null){
@@ -87,7 +99,17 @@ define([
 
     function fetch(callback) {
       checkRequirements();
-      rdt.get(resource, callback);
+      rdt.get(resource, function (response){
+                          var aux_attributes = JSON.parse(response)[jsonRoot];
+                          for(var attr in aux_attributes)
+                          {
+                            if(aux_attributes.hasOwnProperty(attr))
+                            {
+                              set(attr, aux_attributes[attr]);
+                            }
+                          }
+                          callback(response);
+                        });
     }
 
     /**
