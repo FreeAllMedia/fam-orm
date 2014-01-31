@@ -1,6 +1,7 @@
 define([
-  "require"
-], function (require) {
+  "require",
+  "./require_underscore"
+], function (require, _) {
 
   "use strict";
 
@@ -59,7 +60,7 @@ define([
    *       }
    *     }
    */
-  return function FAMModel(resourceName, options) {
+  var FamModel = function (resourceName, options) {
 
     /**
      * Referencing copy of the options passed to the constructor, made public so that options can be changed after instantiation.
@@ -77,25 +78,13 @@ define([
     this.fetch = fetch;
     this.set = set;
     this.get = get;
+    this.initialize = initialize;
 
     /**
      * Fetch model data from data source
      * @method fetch
      * @param {Function(error, data)} [callback] nodejs-style callback. Called when data has completed fetching from the data source.
      */
-    function set(attr, value){
-      attributes[attr] = value;
-    }
-
-    function get(attr){
-      return attributes[attr];
-    }
-    
-    function checkRequirements(){
-      if(rdt == null || resource == null){
-        throw new Error("Model cannot make changes to the server without an RDT, and a Resource path. See documentation for details.");
-      }
-    }
 
     function fetch(callback) {
       checkRequirements();
@@ -132,6 +121,54 @@ define([
       rdt.destroy(resource, callback);
     }
 
+    function initialize(){
+    
+    }
+
+    function set(attr, value){
+      attributes[attr] = value;
+    }
+
+    function get(attr){
+      return attributes[attr];
+    }
+    
+    function checkRequirements(){
+      if(rdt == null || resource == null){
+        throw new Error("Model cannot make changes to the server without an RDT, and a Resource path. See documentation for details.");
+      }
+    }
   };
+
+  FamModel.extend = function(protoProps, staticProps){
+    var parent = this;
+    var child;
+
+    if (protoProps && _.has(protoProps, 'constructor')) {
+      child = protoProps.constructor;
+    } else {
+      child = function(){ return parent.apply(this, arguments); };
+    }
+    // Add static properties to the constructor function, if supplied.
+    _.extend(child, parent, staticProps);
+
+    // Set the prototype chain to inherit from `parent`, without calling
+    // `parent`'s constructor function.
+    var Surrogate = function(){ this.constructor = child; };
+    Surrogate.prototype = parent.prototype;
+    child.prototype = new Surrogate();
+
+    // Add prototype properties (instance properties) to the subclass,
+    // if supplied.
+    if (protoProps) _.extend(child.prototype, protoProps);
+
+    // Set a convenience property in case the parent's prototype is needed
+    // later.
+    child.__super__ = parent.prototype;
+
+    return child;
+  };
+
+  return FamModel;
 
 });

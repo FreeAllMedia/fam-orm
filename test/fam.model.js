@@ -109,5 +109,18 @@ define(['../scripts/fam.model.js'], function(FamModel){
       });
     });
 
+    describe('extend', function(){
+      it('should have the fam model functions', function(){
+        newClass = FamModel.extend({});
+        newModel = new newClass("User", {});
+        expect(newModel).to.have.property('save');
+        expect(newModel).have.property('fetch');
+        expect(newModel).have.property('get');
+        expect(newModel).have.property('destroy');
+        expect(newModel).have.property('set');
+      });
+
+    });
+
   });
 });

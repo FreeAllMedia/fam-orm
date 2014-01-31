@@ -1,12 +1,14 @@
-
 {
   "name": "requireJSMochaChaiBoostrap",
   "version": "0.0.1",
   "engines": {
     "node": "0.10.21"
   },
+  "dependencies" : {
+    "underscore" : "latest",
+    "requirejs": "latest"
+  },
   "devDependencies":{
-    "requirejs": "latest",
     "mocha": "latest",
     "mocha-phantomjs" : "latest",
     "phantomjs" : "latest",
