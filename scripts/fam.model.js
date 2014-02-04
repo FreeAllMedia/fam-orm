@@ -12,6 +12,7 @@ define([
    * @param {Object.<string, *>} [options] passes options to the constructor.
    * @param {FAMRDT} [options.rdt] If using FAM Reliable Data Transport (FAMRDT) as the data source, pass the instantiated rdt object here.
    * @param {string} [options.resource] Absolute path from host root to resource location. (i.e. "users/2"). If RDT provided does not have a hostURL associated, you will have to provide the full URL including host (i.e. "https://somehost.com/users/2").
+   * @param {string} [options.resourceId] Unique identifier for the resource in the server.
    * 
    * @example
    *
@@ -70,14 +71,17 @@ define([
     options = options || {};
     var rdt = options.rdt;
     var resource = options.resource;
+    var resourceId = options.id;
     var attributes = {};
-    var jsonRoot = options.jsonRoot;
+    var resourcePath = options.resourcePath || this.resourcePath;
+    var jsonRoot = options.jsonRoot || this.jsonRoot;
 
     this.save = save;
     this.destroy = destroy;
     this.fetch = fetch;
     this.set = set;
     this.get = get;
+    this.resourceUrl = resourceUrl;
     this.initialize = initialize;
 
     /**
@@ -88,7 +92,7 @@ define([
 
     function fetch(callback) {
       checkRequirements();
-      rdt.get(resource, function (response){
+      rdt.get(resourceUrl(), function (response){
                           var aux_attributes = JSON.parse(response)[jsonRoot];
                           for(var attr in aux_attributes)
                           {
@@ -108,7 +112,21 @@ define([
      */
     function save(callback) {
       checkRequirements();
-      rdt.post(resource, {}, callback);
+      rdt.post(resourceUrl(), {}, callback);
+    }
+
+    /**
+     * Returns the URL for the resource based on either the resource or the resourcePath and resourceId
+     * @method resourceUrl
+     */
+    function resourceUrl(){
+      if(resource != null){
+        return resource;
+      }else if(resourceId != null && resourcePath != null){
+        return this.resourcePath + "/" + resourceId;
+      }else{
+        return null;
+      }
     }
 
     /**
@@ -118,7 +136,7 @@ define([
      */
     function destroy(callback) {
       checkRequirements();
-      rdt.destroy(resource, callback);
+      rdt.destroy(resourceUrl(), callback);
     }
 
     function initialize(){
@@ -134,7 +152,7 @@ define([
     }
     
     function checkRequirements(){
-      if(rdt == null || resource == null){
+      if(rdt == null || resourceUrl() == null){
         throw new Error("Model cannot make changes to the server without an RDT, and a Resource path. See documentation for details.");
       }
     }
@@ -147,7 +165,11 @@ define([
     if (protoProps && _.has(protoProps, 'constructor')) {
       child = protoProps.constructor;
     } else {
-      child = function(){ return parent.apply(this, arguments); };
+      child = function(){ 
+        var args = Array.prototype.slice.call(arguments);
+        args.unshift(protoProps.name);
+        return parent.apply(this, args); 
+      };
     }
     // Add static properties to the constructor function, if supplied.
     _.extend(child, parent, staticProps);
